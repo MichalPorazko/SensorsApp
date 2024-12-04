@@ -2,7 +2,9 @@ package com.example.sensors.Navigation
 
 // SharedViewModel.kt
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
+import com.example.sensors.Firebase.FirebaseRepository
 import com.example.sensors.SensorData.Accelerometer
 import com.example.sensors.SensorData.Gyroscope
 import com.example.sensors.SensorData.MeasurableSensor
@@ -13,13 +15,15 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-class SharedViewModel : ViewModel() {
+class SharedViewModel(private val firebaseRepository: FirebaseRepository) : ViewModel() {
+
 
     private val _sensorResults = MutableStateFlow<List<SensorResult>>(emptyList())
     val sensorResults: StateFlow<List<SensorResult>> = _sensorResults
 
     private var currentSensor: MeasurableSensor? = null
     private var currentSensorType: Int = 0
+
 
     private var isMeasuring = false
     private var maxValues = listOf<Float>()
@@ -73,24 +77,38 @@ class SharedViewModel : ViewModel() {
     }
 
     fun stopMeasurement() {
-        if (!isMeasuring) return
+        Log.d("SharedViewModel", "stopMeasurement called") // Log 1
+        if (!isMeasuring) {
+            Log.d("SharedViewModel", "Measurement already stopped") // Log 2
+            return
+        }
         isMeasuring = false
 
         currentSensor?.stopListening()
+        Log.d("SharedViewModel", "Stopped listening to sensor: $currentSensor") // Log 3
+
         val sensorName = when (currentSensorType) {
             android.hardware.Sensor.TYPE_ACCELEROMETER -> "Accelerometer"
             android.hardware.Sensor.TYPE_GYROSCOPE -> "Gyroscope"
             else -> "Unknown"
         }
         val result = SensorResult(sensorName, maxValues)
+        Log.d("SharedViewModel", "Sensor result created: $result") // Log 4
+
+        firebaseRepository.saveSensorResult(sensorName, result)
+
         addSensorValue(result)
+        Log.d("SharedViewModel", "Added sensor result to state flow") // Log 5
+
+
+        Log.d("FirebaseRepository", "Saving to collection: $maxValues") // Log 6
 
         // Reset variables
         currentSensor = null
         currentSensorType = 0
         maxValues = listOf()
-
     }
+
 
     private fun addSensorValue(result: SensorResult) {
         _sensorResults.value += result

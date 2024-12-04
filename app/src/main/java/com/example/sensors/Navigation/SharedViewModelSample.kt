@@ -15,12 +15,15 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
+import com.example.sensors.Firebase.FirebaseRepository
 import com.example.sensors.Screens.MainScreen
 import com.example.sensors.Screens.SensorMeasurementScreen
 
 @Composable
 fun SharedViewModelSample() {
     val navController = rememberNavController()
+    val firebaseRepository = remember { FirebaseRepository() }
+    val sharedViewModel: SharedViewModel = viewModel(factory = SharedViewModelFactory(firebaseRepository))
     NavHost(
         navController = navController,
         startDestination = "main_graph"
@@ -30,9 +33,8 @@ fun SharedViewModelSample() {
             route = "main_graph"
         ) {
             composable("main_screen") { entry: NavBackStackEntry ->
-                val viewModel = entry.sharedViewModel<SharedViewModel>(navController)
                 // collectAsStateWithLifecycle() => collects data
-                val sensorResults by viewModel.sensorResults.collectAsStateWithLifecycle()
+                val sensorResults by sharedViewModel.sensorResults.collectAsStateWithLifecycle()
 
                 MainScreen(
                     sensorResults = sensorResults,
@@ -48,8 +50,6 @@ fun SharedViewModelSample() {
                  * */
                 arguments = listOf(navArgument("sensorType") { type = NavType.IntType })
             ) { entry: NavBackStackEntry ->
-                val viewModel: SharedViewModel =
-                    entry.sharedViewModel<SharedViewModel>(navController)
                 val sensorType = entry.arguments?.getInt("sensorType") ?: Sensor.TYPE_ACCELEROMETER
 
                 SensorMeasurementScreen(
@@ -57,7 +57,7 @@ fun SharedViewModelSample() {
                     onMeasurementFinished = {
                         navController.popBackStack()
                     },
-                    viewModel
+                    sharedViewModel
                 )
             }
 
