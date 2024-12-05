@@ -1,71 +1,101 @@
 package com.example.sensors.Navigation
 
-import android.hardware.Sensor
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
-import androidx.navigation.navigation
 import com.example.sensors.Firebase.FirebaseRepository
-import com.example.sensors.Screens.MainScreen
-import com.example.sensors.Screens.SensorMeasurementScreen
+import com.example.sensors.Screens.SignUpPage
 
 @Composable
 fun SharedViewModelSample() {
     val navController = rememberNavController()
     val firebaseRepository = remember { FirebaseRepository() }
     val sharedViewModel: SharedViewModel = viewModel(factory = SharedViewModelFactory(firebaseRepository))
+
     NavHost(
         navController = navController,
-        startDestination = "main_graph"
+        startDestination = "home"
     ) {
-        navigation(
-            startDestination = "main_screen",
-            route = "main_graph"
-        ) {
-            composable("main_screen") { entry: NavBackStackEntry ->
-                // collectAsStateWithLifecycle() => collects data
-                val sensorResults by sharedViewModel.sensorResults.collectAsStateWithLifecycle()
+        // Home Page
+        composable("home") {
+            HomePage(
+                onLoginClick = { navController.navigate("login") },
+                onSignUpClick = { navController.navigate("signup") }
+            )
+        }
 
-                MainScreen(
-                    sensorResults = sensorResults,
-                    sensorFunction = { sensorType ->
-                        navController.navigate("sensor_screen/$sensorType")
-                    })
+        // Login Page
+        composable("login") {
+            LoginPage(
+                sharedViewModel = sharedViewModel,
+                onLoginSuccess = {
+                    // Determine user type and navigate accordingly
+                    determineUserTypeAndNavigate(navController, sharedViewModel)
+                },
+                onSignUpClick = { navController.navigate("signup") }
+            )
+        }
+
+        // Sign Up Page
+        composable("signup") {
+            SignUpPage(
+                sharedViewModel = sharedViewModel,
+                onSignUpSuccess = {
+                    // Determine user type and navigate accordingly
+                    determineUserTypeAndNavigate(navController, sharedViewModel)
+                },
+                onLoginClick = { navController.navigate("login") }
+            )
+        }
+
+        // Patient Main Screen
+        composable("patient_main") {
+            PatientMainScreen(sharedViewModel = sharedViewModel)
+        }
+
+        // Doctor Main Screen
+        composable("doctor_main") {
+            DoctorMainScreen(sharedViewModel = sharedViewModel)
+        }
+    }
+}
+
+
+private fun determineUserTypeAndNavigate(navController: NavController, viewModel: SharedViewModel) {
+    // Fetch user info from Firestore
+    val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+    val db = FirebaseFirestore.getInstance()
+
+    db.collection("users").document(uid).get()
+        .addOnSuccessListener { document ->
+            if (document != null && document.exists()) {
+                val userType = document.getString("userType")
+                if (userType == "Patient") {
+                    navController.navigate("patient_main") {
+                        popUpTo("home") { inclusive = true }
+                    }
+                } else if (userType == "Doctor") {
+                    navController.navigate("doctor_main") {
+                        popUpTo("home") { inclusive = true }
+                    }
+                }
+            } else {
+                // Handle case where user document doesn't exist
             }
-
-            composable(
-                route = "sensor_screen/{sensorType}",
-                /**
-                 * navArgument is used to define the arguments expected by a navigation route in the navigation graph
-                 * */
-                arguments = listOf(navArgument("sensorType") { type = NavType.IntType })
-            ) { entry: NavBackStackEntry ->
-                val sensorType = entry.arguments?.getInt("sensorType") ?: Sensor.TYPE_ACCELEROMETER
-
-                SensorMeasurementScreen(
-                    sensorType = sensorType,
-                    onMeasurementFinished = {
-                        navController.popBackStack()
-                    },
-                    sharedViewModel
-                )
-            }
-
+        }
+        .addOnFailureListener { exception ->
+            // Handle error
         }
 }
-}
 
-    @Composable
+
+@Composable
     inline fun <reified T: ViewModel> NavBackStackEntry.sharedViewModel(
         navController: NavController
     ): T {
