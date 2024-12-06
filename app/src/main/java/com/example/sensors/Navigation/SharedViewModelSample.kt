@@ -10,6 +10,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.sensors.Firebase.FirebaseRepository
+import com.example.sensors.Screens.PatientMainScreen
 import com.example.sensors.Screens.SignUpPage
 
 @Composable

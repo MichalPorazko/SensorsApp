@@ -2,6 +2,29 @@ package com.example.sensors.Screens
 
 import androidx.compose.runtime.Composable
 import com.example.sensors.Navigation.SharedViewModel
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 
 @Composable
 fun PatientMainScreen(
@@ -19,14 +42,6 @@ fun PatientMainScreen(
     // UI Layout
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(text = "Patient Dashboard") },
-                actions = {
-                    TextButton(onClick = onLogout) {
-                        Text(text = "Logout", color = MaterialTheme.colorScheme.onPrimary)
-                    }
-                }
-            )
         },
         content = { paddingValues ->
             Column(
@@ -122,7 +137,7 @@ fun MeasurementCard(measurement: String) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.Default.MonitorHeart,
+                imageVector = Icons.Default.Person,
                 contentDescription = "Measurement Icon",
                 modifier = Modifier.size(40.dp)
             )
