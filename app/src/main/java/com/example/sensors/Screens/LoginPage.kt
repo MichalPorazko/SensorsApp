@@ -3,6 +3,7 @@ package com.example.sensors.Screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
@@ -16,39 +17,84 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sensors.Firebase.FirebaseRepository
 import com.example.sensors.Navigation.SharedViewModel
 
 @Composable
-fun LoginPage(
-    sharedViewModel: SharedViewModel,
-    onLoginSuccess: () -> Unit,
-    onSignUpClick: () -> Unit
-) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+fun LoginPage(sharedViewModel: SharedViewModel, function: () -> Unit) {
 
-    val authState by sharedViewModel.authState.observeAsState()
 
-    LaunchedEffect(authState) {
-        if (authState is FirebaseRepository.AuthState.Authenticated) {
-            onLoginSuccess()
+    var email by remember {
+        mutableStateOf("")
+    }
+
+    var password by remember {
+        mutableStateOf("")
+    }
+
+    val context = LocalContext.current
+
+    LaunchedEffect(authState.value) {
+        when(authState.value){
+            is AuthState.Authenticated -> navController.navigate("home")
+            is AuthState.Error -> Toast.makeText(context,
+                (authState.value as AuthState.Error).message, Toast.LENGTH_SHORT).show()
+            else -> Unit
         }
     }
 
     Column(
-        // Layout code...
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // UI elements...
+        Text(text = "Login Page", fontSize = 32.sp)
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = email,
+            onValueChange = {
+                email = it
+            },
+            label = {
+                Text(text = "Email")
+            }
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = password,
+            onValueChange = {
+                password = it
+            },
+            label = {
+                Text(text = "Password")
+            }
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
         Button(onClick = {
-            sharedViewModel.loginUser(email, password)
-        }) {
+            authViewModel.login(email,password)
+        },
+            enabled = authState.value != FirebaseRepository.AuthState.Loading
+        ) {
             Text(text = "Login")
         }
-        TextButton(onClick = onSignUpClick) {
-            Text(text = "Don't have an account? Sign Up")
+
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        TextButton(onClick = {
+            navController.navigate("signup")
+        }) {
+            Text(text = "Don't have an account, Signup")
         }
+
     }
+
 }

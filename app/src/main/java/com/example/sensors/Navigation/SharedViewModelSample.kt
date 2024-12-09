@@ -6,10 +6,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.example.sensors.Firebase.FirebaseRepository
+import com.example.sensors.Screens.LoginPage
 import com.example.sensors.Screens.PatientMainScreen
 import com.example.sensors.Screens.SignUpPage
 
@@ -23,47 +26,96 @@ fun SharedViewModelSample() {
         navController = navController,
         startDestination = "home"
     ) {
-        // Home Page
-        composable("home") {
-            HomePage(
-                onLoginClick = { navController.navigate("login") },
-                onSignUpClick = { navController.navigate("signup") }
-            )
+        authGraph(navController, sharedViewModel)
+        composable("Settings"){}
+
+        navigation(
+            startDestination = "FirstPart",
+            route = "auth"
+        ){
+            composable("login") {entry ->
+                val viewModel = entry.sharedViewModel<SharedViewModel>(navController)
+                LoginPage(viewModel, function = navController.navigate()
+                    )
+
+            }
+            composable("signup") {
+                val viewModel = it.sharedViewModel<SharedViewModel>(navController)
+                SignUpPage(
+                    sharedViewModel = sharedViewModel,
+                    onSignUpSuccess = {
+                        // Determine user type and navigate accordingly
+                        determineUserTypeAndNavigate(navController, sharedViewModel)
+                    },
+                    onLoginClick = { navController.navigate("login") }
+                )
+            }
+            composable("forgot_password") {
+                val viewModel = it.sharedViewModel<SharedViewModel>(navController)
+            }
+
         }
 
-        // Login Page
-        composable("login") {
-            LoginPage(
-                sharedViewModel = sharedViewModel,
-                onLoginSuccess = {
-                    // Determine user type and navigate accordingly
-                    determineUserTypeAndNavigate(navController, sharedViewModel)
-                },
-                onSignUpClick = { navController.navigate("signup") }
-            )
+        navigation(
+            startDestination = "mainScreens",
+            route = ""
+        ){
+            composable("patientScreen") {entry ->
+                val viewModel = entry.sharedViewModel<SharedViewModel>(navController)
+                PatientMainScreen (viewModel, function = navController.navigate())
+
+            }
+            composable("doctorScreen") {entry ->
+                val viewModel = entry.sharedViewModel<SharedViewModel>(navController)
+                DoctorMainScreen(sharedViewModel = sharedViewModel)
+
+            }
+
         }
 
-        // Sign Up Page
-        composable("signup") {
-            SignUpPage(
-                sharedViewModel = sharedViewModel,
-                onSignUpSuccess = {
-                    // Determine user type and navigate accordingly
-                    determineUserTypeAndNavigate(navController, sharedViewModel)
-                },
-                onLoginClick = { navController.navigate("login") }
-            )
-        }
+    }
+}
 
-        // Patient Main Screen
-        composable("patient_main") {
-            PatientMainScreen(sharedViewModel = sharedViewModel)
+fun NavGraphBuilder.appGraph(navController: NavController){
+    navigation(startDestination = Screens.ScreenHomeRoute.route, route = Screens.AppRoute.route){
+        composable(route = Screens.ScreenHomeRoute.route) {
+            HomeScreen(navController = navController)
         }
+        composable(route = Screens.ScreenARoute.route) {
+            ScreenA(navController = navController)
+        }
+        composable(route = Screens.ScreenBRoute.route) {
+            ScreenB(navController = navController)
+        }
+    }
+}
 
-        // Doctor Main Screen
-        composable("doctor_main") {
-            DoctorMainScreen(sharedViewModel = sharedViewModel)
+fun NavGraphBuilder.authGraph(navController: NavController){
+
+    navigation(startDestination = Screens.ScreenLoginRoute.route, route = Screens.AuthRoute.route){
+        composable(route = Screens.ScreenLoginRoute.route) {
+            LoginScreen(navController = navController)
         }
+        composable(route = Screens.ScreenRegisterRoute.route) {
+            SignUpPage { }(navController = navController)
+        }
+        composable(route = Screens.ScreenForgetPassRoute.route) {
+            ForgetPassScreen(navController = navController)
+        }
+    }
+}
+
+@Composable
+fun Nav() {
+    val navController = rememberNavController()
+    NavHost(navController = navController, startDestination = Screens.AuthRoute.route) {
+
+
+        authGraph(navController)
+        appGraph(navController)
+
+
+
     }
 }
 
