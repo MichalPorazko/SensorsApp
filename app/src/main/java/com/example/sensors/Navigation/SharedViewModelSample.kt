@@ -26,7 +26,6 @@ fun SharedViewModelSample() {
         navController = navController,
         startDestination = "home"
     ) {
-        authGraph(navController, sharedViewModel)
         composable("Settings"){}
 
         navigation(
@@ -35,8 +34,7 @@ fun SharedViewModelSample() {
         ){
             composable("login") {entry ->
                 val viewModel = entry.sharedViewModel<SharedViewModel>(navController)
-                LoginPage(viewModel, function = navController.navigate()
-                    )
+                LoginPage(viewModel, function = { navController.navigate("home") })
 
             }
             composable("signup") {
@@ -120,32 +118,7 @@ fun Nav() {
 }
 
 
-private fun determineUserTypeAndNavigate(navController: NavController, viewModel: SharedViewModel) {
-    // Fetch user info from Firestore
-    val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
-    val db = FirebaseFirestore.getInstance()
 
-    db.collection("users").document(uid).get()
-        .addOnSuccessListener { document ->
-            if (document != null && document.exists()) {
-                val userType = document.getString("userType")
-                if (userType == "Patient") {
-                    navController.navigate("patient_main") {
-                        popUpTo("home") { inclusive = true }
-                    }
-                } else if (userType == "Doctor") {
-                    navController.navigate("doctor_main") {
-                        popUpTo("home") { inclusive = true }
-                    }
-                }
-            } else {
-                // Handle case where user document doesn't exist
-            }
-        }
-        .addOnFailureListener { exception ->
-            // Handle error
-        }
-}
 
 
 @Composable

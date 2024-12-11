@@ -2,6 +2,8 @@ package com.example.sensors.Firebase
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.navigation.NavController
+import com.example.sensors.Navigation.SharedViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -13,16 +15,45 @@ class FirebaseRepository {
     private val _authState = MutableLiveData<AuthState>()
     val authState: LiveData<AuthState> = _authState
 
-    fun login(email: String, password: String) {
+    private fun login() {
+
+        loginInProgress.value = true
+        val email = loginUIState.value.email
+        val password = loginUIState.value.password
+
+        FirebaseAuth
+            .getInstance()
+            .signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener {
+                Log.d(TAG,"Inside_login_success")
+                Log.d(TAG,"${it.isSuccessful}")
+
+                if(it.isSuccessful){
+                    loginInProgress.value = false
+                    PostOfficeAppRouter.navigateTo(Screen.HomeScreen)
+                }
+            }
+            .addOnFailureListener {
+                Log.d(TAG,"Inside_login_failure")
+                Log.d(TAG,"${it.localizedMessage}")
+
+                loginInProgress.value = false
+
+            }
+
+    }
+
+    fun login(email: String, password: String): LiveData<AuthState> {
         if (email.isEmpty() || password.isEmpty()) {
             _authState.value = AuthState.Error("Email or password can't be empty")
-            return
+            return authState
         }
 
         _authState.value = AuthState.Loading
         auth.signInWithEmailAndPassword(email, password).addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 _authState.value = AuthState.Authenticated
+                return authState
             } else {
                 _authState.value = AuthState.Error(
                     task.exception?.message ?: "An error occurred during login"
@@ -67,6 +98,8 @@ class FirebaseRepository {
                 }
             }
     }
+
+    
 
     fun signOut() {
         auth.signOut()

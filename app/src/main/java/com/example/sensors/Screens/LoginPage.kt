@@ -10,6 +10,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,14 +38,12 @@ fun LoginPage(sharedViewModel: SharedViewModel, function: () -> Unit) {
 
     val context = LocalContext.current
 
-    LaunchedEffect(authState.value) {
-        when(authState.value){
-            is AuthState.Authenticated -> navController.navigate("home")
-            is AuthState.Error -> Toast.makeText(context,
-                (authState.value as AuthState.Error).message, Toast.LENGTH_SHORT).show()
-            else -> Unit
+    DisposableEffect(Unit) {
+        onDispose {
+            function()
         }
     }
+
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -79,9 +78,7 @@ fun LoginPage(sharedViewModel: SharedViewModel, function: () -> Unit) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = {
-            authViewModel.login(email,password)
         },
-            enabled = authState.value != FirebaseRepository.AuthState.Loading
         ) {
             Text(text = "Login")
         }
@@ -90,7 +87,6 @@ fun LoginPage(sharedViewModel: SharedViewModel, function: () -> Unit) {
         Spacer(modifier = Modifier.height(8.dp))
 
         TextButton(onClick = {
-            navController.navigate("signup")
         }) {
             Text(text = "Don't have an account, Signup")
         }
