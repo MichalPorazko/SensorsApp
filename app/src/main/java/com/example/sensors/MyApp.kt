@@ -8,6 +8,6 @@ class MyApp : Application() {
     override fun onCreate() {
         super.onCreate()
         // Initialize Firebase
-        Firebase.firestore
+        //Firebase.firestore
     }
 }

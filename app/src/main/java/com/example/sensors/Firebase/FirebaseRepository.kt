@@ -16,51 +16,50 @@ class FirebaseRepository {
     val authState: LiveData<AuthState> = _authState
 
     private fun login() {
-
-        loginInProgress.value = true
-        val email = loginUIState.value.email
-        val password = loginUIState.value.password
-
-        FirebaseAuth
-            .getInstance()
-            .signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener {
-                Log.d(TAG,"Inside_login_success")
-                Log.d(TAG,"${it.isSuccessful}")
-
-                if(it.isSuccessful){
-                    loginInProgress.value = false
-                    PostOfficeAppRouter.navigateTo(Screen.HomeScreen)
-                }
-            }
-            .addOnFailureListener {
-                Log.d(TAG,"Inside_login_failure")
-                Log.d(TAG,"${it.localizedMessage}")
-
-                loginInProgress.value = false
-
-            }
+//
+//        loginInProgress.value = true
+//        val email = loginUIState.value.email
+//        val password = loginUIState.value.password
+//
+//        FirebaseAuth
+//            .getInstance()
+//            .signInWithEmailAndPassword(email, password)
+//            .addOnCompleteListener {
+//                Log.d(TAG,"Inside_login_success")
+//                Log.d(TAG,"${it.isSuccessful}")
+//
+//                if(it.isSuccessful){
+//                    loginInProgress.value = false
+//                    PostOfficeAppRouter.navigateTo(Screen.HomeScreen)
+//                }
+//            }
+//            .addOnFailureListener {
+//                Log.d(TAG,"Inside_login_failure")
+//                Log.d(TAG,"${it.localizedMessage}")
+//
+//                loginInProgress.value = false
+//
+//            }
 
     }
 
-    fun login(email: String, password: String): LiveData<AuthState> {
-        if (email.isEmpty() || password.isEmpty()) {
-            _authState.value = AuthState.Error("Email or password can't be empty")
-            return authState
-        }
-
-        _authState.value = AuthState.Loading
-        auth.signInWithEmailAndPassword(email, password).addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                _authState.value = AuthState.Authenticated
-                return authState
-            } else {
-                _authState.value = AuthState.Error(
-                    task.exception?.message ?: "An error occurred during login"
-                )
-            }
-        }
-    }
+//    fun login(email: String, password: String): LiveData<AuthState> {
+//        if (email.isEmpty() || password.isEmpty()) {
+//            _authState.value = AuthState.Error("Email or password can't be empty")
+//            return authState
+//        }
+//
+//        _authState.value = AuthState.Loading
+//        auth.signInWithEmailAndPassword(email, password).addOnCompleteListener { task ->
+//            if (task.isSuccessful) {
+//                _authState.value = AuthState.Authenticated
+//            } else {
+//                _authState.value = AuthState.Error(
+//                    task.exception?.message ?: "An error occurred during login"
+//                )
+//            }
+//        }
+//    }
 
     fun signup(
         email: String,

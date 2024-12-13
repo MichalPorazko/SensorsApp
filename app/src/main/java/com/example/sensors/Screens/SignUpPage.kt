@@ -38,13 +38,13 @@ fun SignUpPage(
     val authNumber by remember { mutableStateOf("") }
     val selectedDoctor by remember { mutableStateOf("") }
 
-    val authState by sharedViewModel.authState.observeAsState()
-
-    LaunchedEffect(authState) {
-        if (authState is FirebaseRepository.AuthState.Authenticated) {
-            onSignUpSuccess()
-        }
-    }
+//    val authState by sharedViewModel.authState.observeAsState()
+//
+//    LaunchedEffect(authState) {
+//        if (authState is FirebaseRepository.AuthState.Authenticated) {
+//            onSignUpSuccess()
+//        }
+//    }
 
     Column(
         // Layout code...
